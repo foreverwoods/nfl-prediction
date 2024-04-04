@@ -1,0 +1,100 @@
+---
+title: "Forseeing the rest of the 2023 NFL season"
+subtitle: "Predicting each team's EPA"
+author: 
+  - Janssen Myer Rambaud
+thanks: "Code and data are available at: ."
+date: today
+date-format: long
+format: pdf
+number-sections: true
+bibliography: references.bib
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(tidymodels)
+library(dplyr)
+library(janitor)
+library(nflverse)
+library(modelsummary)
+```
+
+# Introduction
+
+This paper looks to predict how the rest of the 2023 NFL regular season will play out after the halfway mark. Using the data collected from Week 1 up to Week 9, we aim to predict how the passing EPA will look for each team until the regular season ends. Passing EPA, according to nflverse is defined as the "total expected points added on pass attempts and sacks" [@citenflverse].
+
+# Data {#sec-data}
+
+This data was first collected through @citenflverse, where it was selected to retrieve recorded games by a QB in the 2023 season up to week 9. Using @citeR, the package was downloaded, cleaned, and fitted into a model with the help of @citedplyr, @citejanitor, @citetidyverse, @citemodelsummary and @citetidymodels. Taking a look at the provided statistics from @citenflverse, the best analytics to predict passing EPA appeared to be: completions, attempts, passing_yards, passing_yards_after_catch, passing_tds (passing touchdowns), and sacks, according the their definition of EPA.
+
+Completions are successful passes (caught) that did not hit the ground/go out of bounds. Pass attempts are just any attempt at passing the ball. Passing yards are the distance (in yards) the ball has covered from where it was thrown to where it was caught. Passing yards after catch are technically rushing yards, but as it is influenced by the throw of the QB, it can remain here. Passing touchdowns are when the QB passes the ball to a receiver at the endzone, scoring a point. Sacks are when the QB are taken down by a defender prior to making a complete pass.
+
+```{r}
+#| label: nfl-qb-statistics
+#| fig-cap: Weeks 1 - 9 NFL QB passing statistics
+#| echo: false
+#| message: false
+
+cleaned_data <- read_csv("../data/analysis_data.csv", show_col_types = FALSE) |>
+  head()
+
+cleaned_data
+
+```
+
+# Model
+
+The goal of our modelling strategy is to use every available metric that involves the QB's passing, so in this case, passing yards after catch is included, as well as sacks. This is enough to fit and hopefully predict the future EPA for weeks 10-18.
+
+## Model set-up
+
+Define $y_i$ as the passing EPA recorded for a QB for a game. Then the rest of the factors are the important QB passing-influenced metrics as described in the data section.
+
+$$
+\begin{aligned}
+& y_i|\mu_i\sim \mbox{Normal}(\mu_i, \sigma)\\
+\mu_i & = \beta_0+\beta_1 \times \mbox{completions}_i + \beta_2 \times \mbox{attempts}_i +\beta_3 \times \mbox{passing-tds}_i \\ + &\beta_4 \times \mbox{passing-yards}_i +\beta_5 \times \mbox{passing-yards-after-catch}_i +\beta_6 \times \mbox{sacks}_i
+\end{aligned}
+$$
+
+### 
+
+# Results
+
+Our results are summarized in @tbl-qb-model.
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+#| label: tbl-qb-model
+#| tbl-cap: "Predicted Passing EPA"
+
+
+qb_model <-
+  readRDS(file = here::here("models/qb_model.rds"))
+
+modelsummary(qb_model)
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| label: tbl-modelresults
+#| tbl-cap: "Comparison of Model and Actual"
+#| warning: false
+
+
+actual_data = read_csv("../data/actual_data.csv", show_col_types = FALSE)
+
+```
+
+\newpage
+
+# References
